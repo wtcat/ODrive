@@ -22,7 +22,9 @@ extern const float adc_full_scale;
 extern const float adc_ref_voltage;
 /* Exported variables --------------------------------------------------------*/
 extern float vbus_voltage;
+extern float ibus_;
 extern bool brake_resistor_armed;
+extern bool brake_resistor_saturated;
 extern uint16_t adc_measurements_[ADC_CHANNEL_COUNT];
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
@@ -46,12 +48,26 @@ void pwm_in_cb(int channel, uint32_t timestamp);
 void start_adc_pwm();
 void start_pwm(TIM_HandleTypeDef* htim);
 void sync_timers(TIM_HandleTypeDef* htim_a, TIM_HandleTypeDef* htim_b,
-        uint16_t TIM_CLOCKSOURCE_ITRx, uint16_t count_offset);
+                 uint16_t TIM_CLOCKSOURCE_ITRx, uint16_t count_offset,
+                 TIM_HandleTypeDef* htim_refbase = nullptr);
 void start_general_purpose_adc();
-float get_adc_voltage(GPIO_TypeDef* GPIO_port, uint16_t GPIO_pin);
+float get_adc_voltage(const GPIO_TypeDef* const GPIO_port, uint16_t GPIO_pin);
+uint16_t channel_from_gpio(const GPIO_TypeDef* const GPIO_port, uint16_t GPIO_pin);
+float get_adc_voltage_channel(uint16_t channel);
 void pwm_in_init();
+void start_analog_thread();
 
 void update_brake_current();
+
+inline uint32_t cpu_enter_critical() {
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
+}
+
+inline void cpu_exit_critical(uint32_t priority_mask) {
+    __set_PRIMASK(priority_mask);
+}
 
 #ifdef __cplusplus
 }

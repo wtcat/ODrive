@@ -216,9 +216,12 @@ def put_into_dfu_mode(device, cancellation_token):
     Puts the specified device into DFU mode
     """
     if not hasattr(device, "enter_dfu_mode"):
-        print("The firmware on device {} does not support DFU. You need to \n"
-              "flash the firmware once using STLink (`make flash`), after that \n"
-              "DFU with this script should work fine."
+        print("The firmware on device {} cannot soft enter DFU mode.\n"
+              "Please remove power, put the DFU switch into DFU mode,\n"
+              "then apply power again. Then try again.\n"
+              "If it still doesn't work, you can try to use the DeFuse app or \n"
+              "dfu-util, see the odrive documentation.\n"
+              "You can also flash the firmware using STLink (`make flash`)"
               .format(device.__channel__.usb_device.serial_number))
         return
         
@@ -338,8 +341,8 @@ def update_device(device, firmware, logger, cancellation_token):
 
     # Back up configuration
     if dfudev is None:
-        did_backup_config = device.user_config_loaded if hasattr(device, 'user_config_loaded') else False
-        if did_backup_config:
+        do_backup_config = device.user_config_loaded if hasattr(device, 'user_config_loaded') else False
+        if do_backup_config:
             odrive.configuration.backup_config(device, None, logger)
     elif not odrive.utils.yes_no_prompt("The configuration cannot be backed up because the device is already in DFU mode. The configuration may be lost after updating. Do you want to continue anyway?", True):
         raise OperationAbortedException()
@@ -414,7 +417,7 @@ def update_device(device, firmware, logger, cancellation_token):
     device = odrive.find_any("usb", serial_number,
                     cancellation_token, cancellation_token, timeout=30)
 
-    if did_backup_config:
+    if do_backup_config:
         odrive.configuration.restore_config(device, None, logger)
         os.remove(odrive.configuration.get_temp_config_filename(device))
 

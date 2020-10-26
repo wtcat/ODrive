@@ -51,6 +51,17 @@ Sometimes you would like the index search to only happen in a particular directi
 
 *IMPORTANT:* Your motor should find the same rotational position when the ODrive performs an index search if the index signal is working properly. This means that the motor should spin, and stop at the same position if you have set <axis>.config.startup_encoder_index_search so the search starts on reboot, or you if call the command:<axis>.requested_state = AXIS_STATE_ENCODER_INDEX_SEARCH after reboot. You can test this. Send the reboot() command, and while it's rebooting turn your motor, then make sure the motor returns back to the correct position each time when it comes out of reboot. Try this procedure a couple of times to be sure. 
 
+### Hall Effect Encoders  
+Hall effect encoders can also be used with ODrive. The encoder CPR should be set to `6 * <# of motor pole pairs>`. Due to the low resolution of hall effect encoders compared to other types of encoders, low speed performance will be worse than other encoder types.
+
+When the encoder mode is set to hall feedback, the pinout on the encoder port is as follows:
+
+| Label on ODrive | Hall feedback |
+|-----------------|---------------|
+| A               | Hall A        |
+| B               | Hall B        |
+| Z               | Hall C        |
+
 ### Startup sequence notes
 The following are variables that MUST be set up for your encoder configuration. Your values will vary depending on your encoder:
 
@@ -151,8 +162,7 @@ Some of these chips come with evaluation boards that can simplify mounting the c
 
 1. Connect the encoder to the ODrive's SPI interface:
    
-    - The encoder's SCK, MISO (aka "DATA" on CUI encoders), GND and 3.3V should connect to the ODrive pins with the same label.
-    - The encoder's MOSI should be tied to 3.3V (AMS encoders only. CUI encoders don't have this pin.)
+    - The encoder's SCK, MISO (aka "DATA" on CUI encoders), MOSI (if present on the encoder), GND and 3.3V should connect to the ODrive pins with the same label. If you want to save a wire with AMS encoders, you can also connect the encoder's MOSI to the encoder's VDD instead.
     - The encoder's Chip Select (aka nCS/CSn) can be connected to any of the ODrive's GPIOs (caution: GPIOs 1 and 2 are usually used by UART).
 
 If you are having calibration problems, make sure that your magnet is centered on the axis of rotation on the motor. Some users report that this has a significant impact on calibration. Also make sure that your magnet height is within range of the spec sheet. 
